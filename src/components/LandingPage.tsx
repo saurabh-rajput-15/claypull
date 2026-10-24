@@ -451,6 +451,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                       onChange={(e) => setEndpoint(e.target.value)}
                       disabled={isRunning}
                     />
+                    {typeof window !== 'undefined' && window.location.protocol === 'https:' && provider === 'ollama-local' && (
+                      <div style={{ marginTop: 6, fontSize: 11, color: '#92400e', lineHeight: 1.4 }}>
+                        💡 On deployed link (HTTPS): Run <code>npm run tunnel</code> locally and paste the <code>https://...</code> URL, or switch to <strong>Instant Demo</strong> / <strong>Cloud API</strong>.
+                      </div>
+                    )}
                   </div>
                   <div className="field">
                     <label htmlFor="model-name">

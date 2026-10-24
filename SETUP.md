@@ -112,11 +112,31 @@ ollama run qwen2.5-coder:7b
 ollama run llama3.2:latest
 ```
 
-### 4. CORS & Vite Proxy Note
-Browsers block direct requests from `http://localhost:5174` to `http://localhost:11434` due to CORS.  
-ClayPull solves this **automatically**:
-- The Vite development server configures a reverse proxy at `/ollama` forwarding to `http://localhost:11434`.
-- ClayPull seamlessly routes requests through this proxy without requiring custom headers on your Ollama daemon!
+### 4. Running Ollama Locally vs Deployed Link (https://claypull.vercel.app/)
+
+#### A. Running Locally (`http://localhost:5174/`)
+When running `npm run dev` locally, Vite automatically proxies `/ollama` to `http://localhost:11434`. Zero CORS configuration or flags needed!
+
+#### B. Connecting Local Ollama to Deployed Link (`https://claypull.vercel.app/`)
+Modern browsers restrict HTTPS websites (`https://claypull.vercel.app`) from calling unencrypted local HTTP ports (`http://localhost:11434`) due to mixed-content security.
+
+ClayPull provides 3 straightforward ways to use Ollama with the deployed link:
+1. **Instant HTTPS Tunnel (Easiest)**:
+   Run the built-in tunnel command in your terminal:
+   ```bash
+   npm run tunnel
+   ```
+   *(Or run `npx localtunnel --port 11434`)*. Copy the generated `https://...` link and paste it into the **Endpoint URL** field at [https://claypull.vercel.app/](https://claypull.vercel.app/).
+2. **Start Ollama with Allowed Origins**:
+   ```bash
+   # On Windows PowerShell:
+   $env:OLLAMA_ORIGINS="*" ; ollama serve
+
+   # On macOS / Linux:
+   OLLAMA_ORIGINS="*" ollama serve
+   ```
+3. **Vercel Serverless Function Proxy (`/api/ollama`)**:
+   The deployed link automatically routes remote and cloud Ollama instances through the built-in `/api/ollama` serverless proxy on Vercel, bypassing all browser CORS restrictions completely!
 
 ---
 

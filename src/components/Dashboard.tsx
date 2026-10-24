@@ -915,6 +915,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     value={endpoint}
                     onChange={(e) => setEndpoint(e.target.value)}
                   />
+                  {typeof window !== 'undefined' && window.location.protocol === 'https:' && provider === 'ollama-local' && (
+                    <div style={{ marginTop: 6, fontSize: 11, color: '#92400e', lineHeight: 1.4 }}>
+                      💡 On deployed link (HTTPS): Run <code>npm run tunnel</code> locally and paste the <code>https://...</code> URL, or switch to <strong>Demo Mode</strong> / <strong>Cloud API</strong>.
+                    </div>
+                  )}
                 </div>
                 <div className="field">
                   <label>Model Name</label>

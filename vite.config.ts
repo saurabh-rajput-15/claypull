@@ -18,4 +18,13 @@ export default defineConfig({
       },
     },
   },
+  preview: {
+    proxy: {
+      '/ollama': {
+        target: 'http://localhost:11434',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/ollama/, ''),
+      },
+    },
+  },
 })
