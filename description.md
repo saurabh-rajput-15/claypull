@@ -5,7 +5,7 @@
 > **Project Name:** ClayPull  
 > **Tagline:** Open-Source Contribution Coach & AI IDE Studio  
 > **Author:** Saurabh Rajput ([@saurabh-rajput-15](https://github.com/saurabh-rajput-15))  
-> **Repository:** [https://github.com/saurabh-rajput-15/firstpr.git](https://github.com/saurabh-rajput-15/firstpr.git)  
+> **Repository:** [https://github.com/saurabh-rajput-15/claypull.git](https://github.com/saurabh-rajput-15/claypull.git)  
 > **License:** MIT License  
 
 ---
@@ -109,7 +109,7 @@ We know judges have limited time! You can test ClayPull instantly without instal
 
 ### 1. Instant Launch
 ```bash
-git clone https://github.com/saurabh-rajput-15/firstpr.git
+git clone https://github.com/saurabh-rajput-15/claypull.git
 cd firstpr
 npm install
 npm run dev

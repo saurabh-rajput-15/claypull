@@ -69,7 +69,7 @@ ClayPull features a built-in health check and setup wizard that installs depende
 
 ```bash
 # Clone the repository
-git clone https://github.com/saurabh-rajput-15/firstpr.git
+git clone https://github.com/saurabh-rajput-15/claypull.git
 cd firstpr
 
 # Run the automated setup wizard
@@ -309,7 +309,7 @@ ClayPull enforces strict code quality and continuous integration:
 - **Track:** Best Open-Source AI Project
 - **Project Name:** ClayPull
 - **Author:** Saurabh Rajput ([@saurabh-rajput-15](https://github.com/saurabh-rajput-15))
-- **Repository:** [https://github.com/saurabh-rajput-15/firstpr](https://github.com/saurabh-rajput-15/firstpr)
+- **Repository:** [https://github.com/saurabh-rajput-15/claypull](https://github.com/saurabh-rajput-15/claypull)
 - **License:** MIT License
 
 ---

@@ -47,7 +47,7 @@ Open **[http://localhost:5174/](http://localhost:5174/)** in your browser.
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/saurabh-rajput-15/firstpr.git
+git clone https://github.com/saurabh-rajput-15/claypull.git
 cd firstpr
 ```
 
@@ -280,7 +280,7 @@ npm run preview
 
 ## 🤝 Contributing
 
-1. Fork the repo on GitHub: [github.com/saurabh-rajput-15/firstpr](https://github.com/saurabh-rajput-15/firstpr)
+1. Fork the repo on GitHub: [github.com/saurabh-rajput-15/firstpr](https://github.com/saurabh-rajput-15/claypull)
 2. Create your feature branch: `git checkout -b feature/amazing-feature`
 3. Commit your changes: `git commit -m "feat: add amazing feature"`
 4. Push to branch: `git push origin feature/amazing-feature`
