@@ -25,6 +25,13 @@ interface Preset {
 
 const PRESETS: Preset[] = [
   {
+    label: 'Local Ollama (Gemma 4)',
+    provider: 'ollama-local',
+    endpoint: 'http://localhost:11434',
+    model: 'gemma4:e4b',
+    needsKey: false,
+  },
+  {
     label: 'Local Ollama (Qwen 2.5 Coder)',
     provider: 'ollama-local',
     endpoint: 'http://localhost:11434',
@@ -63,7 +70,7 @@ const PRESETS: Preset[] = [
     label: 'Offline Demo (No Setup Needed)',
     provider: 'mock-demo',
     endpoint: '',
-    model: 'qwen2.5-coder-mock:7b',
+    model: 'gemma4-mock:e4b',
     needsKey: false,
   },
 ];
@@ -131,7 +138,7 @@ export default function App() {
   const [level, setLevel] = useState<SkillLevel>(() => getStored('claypull_level', 'beginner'));
   const [provider, setProvider] = useState<ModelProvider>(() => getStored('claypull_provider', 'ollama-local'));
   const [endpoint, setEndpoint] = useState(() => getStored('claypull_endpoint', 'http://localhost:11434'));
-  const [model, setModel] = useState(() => getStored('claypull_model', 'qwen2.5-coder:7b'));
+  const [model, setModel] = useState(() => getStored('claypull_model', 'gemma4:e4b'));
   const [apiKey, setApiKey] = useState(() => getStored('claypull_apikey', ''));
   const [ghToken, setGhToken] = useState(() => getStored('claypull_ghtoken', ''));
 
@@ -197,11 +204,26 @@ export default function App() {
     setLoadingModels(true);
     const models = await listOllamaModels(endpoint);
     setOllamaModels(models);
-    if (models.length > 0 && !models.includes(model)) {
-      setModel(models[0]);
+    if (models.length > 0) {
+      if (models.includes('gemma4:e4b')) {
+        setModel('gemma4:e4b');
+      } else {
+        const anyGemma = models.find((m) => m.toLowerCase().includes('gemma'));
+        if (anyGemma) {
+          setModel(anyGemma);
+        } else if (!models.includes(model)) {
+          setModel(models[0]);
+        }
+      }
     }
     setLoadingModels(false);
   }, [endpoint, model]);
+
+  useEffect(() => {
+    if (provider === 'ollama-local') {
+      refreshModels();
+    }
+  }, [provider, refreshModels]);
 
   const handleAnalyze = useCallback(async () => {
     if (!repoUrl.trim()) return;

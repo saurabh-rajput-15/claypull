@@ -866,7 +866,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     onClick={() => {
                       setProvider('ollama-local');
                       setEndpoint('http://localhost:11434');
-                      setModel('qwen2.5-coder:7b');
+                      setModel('gemma4:e4b');
                     }}
                   >
                     <Server size={14} /> Local Ollama
@@ -877,7 +877,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     onClick={() => {
                       setProvider('ollama-cloud');
                       setEndpoint('https://ollama.com');
-                      setModel('qwen2.5-coder:7b');
+                      setModel('gemma4:e4b');
                     }}
                   >
                     <Cloud size={14} /> Ollama Cloud
@@ -899,7 +899,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     onClick={() => {
                       setProvider('mock-demo');
                       setEndpoint('');
-                      setModel('qwen2.5-coder-mock:7b');
+                      setModel('gemma4-mock:e4b');
                     }}
                   >
                     <Zap size={14} /> Demo Mode

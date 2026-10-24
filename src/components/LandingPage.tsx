@@ -391,7 +391,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                     onClick={() => {
                       setProvider('ollama-local');
                       setEndpoint('http://localhost:11434');
-                      setModel('qwen2.5-coder:7b');
+                      setModel('gemma4:e4b');
                     }}
                     disabled={isRunning}
                   >
@@ -404,7 +404,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                     onClick={() => {
                       setProvider('ollama-cloud');
                       setEndpoint('https://ollama.com');
-                      setModel('qwen2.5-coder:7b');
+                      setModel('gemma4:e4b');
                     }}
                     disabled={isRunning}
                   >
@@ -430,7 +430,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                     onClick={() => {
                       setProvider('mock-demo');
                       setEndpoint('');
-                      setModel('qwen2.5-coder-mock:7b');
+                      setModel('gemma4-mock:e4b');
                     }}
                     disabled={isRunning}
                   >

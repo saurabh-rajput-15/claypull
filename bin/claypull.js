@@ -3,7 +3,7 @@
 /**
  * ClayPull CLI — Open-Source Contribution Coach & AI IDE Studio
  * Usage:
- *   node bin/claypull.js analyze <owner/repo> [--level beginner] [--model qwen2.5-coder:7b] [--out report.md] [--demo]
+ *   node bin/claypull.js analyze <owner/repo> [--level beginner] [--model gemma4:e4b] [--out report.md] [--demo]
  */
 
 import fs from 'node:fs';
@@ -25,7 +25,7 @@ if (!command || command === '--help' || command === '-h' || command === 'help') 
 
   Options:
     --level <lvl>     Skill level: beginner (default), intermediate, advanced
-    --model <name>    Ollama model name (default: qwen2.5-coder:7b)
+    --model <name>    Ollama model name (default: gemma4:e4b)
     --endpoint <url>  Ollama endpoint (default: http://localhost:11434)
     --out <file>      Export report as Markdown file
     --demo            Run in offline demo mode without contacting Ollama
@@ -52,7 +52,7 @@ if (command === 'analyze') {
   }
 
   const level = getOption('--level', 'beginner');
-  const model = getOption('--model', 'qwen2.5-coder:7b');
+  const model = getOption('--model', 'gemma4:e4b');
   const outFile = getOption('--out', '');
   const isDemo = hasFlag('--demo');
 
