@@ -178,15 +178,17 @@ export async function chatCompletion(
         if (config.provider === 'ollama-local') {
           throw new Error(
             `Could not connect to local Ollama at ${config.endpoint}. Please make sure Ollama is running ('ollama serve') or switch to Demo Mode.`,
+            { cause: err },
           );
         }
         throw new Error(
           `Could not connect to model endpoint at ${url}. Check your network, URL, and CORS settings.`,
+          { cause: err },
         );
       }
       throw err;
     }
-    throw new Error('Unknown error during LLM request.');
+    throw new Error('Unknown error during LLM request.', { cause: err });
   }
 }
 

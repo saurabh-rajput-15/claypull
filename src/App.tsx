@@ -76,6 +76,23 @@ const SAMPLE_REPOS = [
   'tailwindlabs/tailwindcss',
 ];
 
+function getStored<T>(key: string, defaultValue: T): T {
+  try {
+    const val = localStorage.getItem(key);
+    return val ? (JSON.parse(val) as T) : defaultValue;
+  } catch {
+    return defaultValue;
+  }
+}
+
+function setStored<T>(key: string, value: T): void {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    // quota exceeded or restricted storage
+  }
+}
+
 export default function App() {
   // ── Client-side Routing (/ or /dashboard) ──
   const [currentRoute, setCurrentRoute] = useState<'/' | '/dashboard'>(() => {
@@ -110,13 +127,22 @@ export default function App() {
   const [appMode, setAppMode] = useState<'single' | 'compare'>('single');
 
   // ── Config State (Model A / Primary) ──
-  const [repoUrl, setRepoUrl] = useState('');
-  const [level, setLevel] = useState<SkillLevel>('beginner');
-  const [provider, setProvider] = useState<ModelProvider>('ollama-local');
-  const [endpoint, setEndpoint] = useState('http://localhost:11434');
-  const [model, setModel] = useState('qwen2.5-coder:7b');
-  const [apiKey, setApiKey] = useState('');
-  const [ghToken, setGhToken] = useState('');
+  const [repoUrl, setRepoUrl] = useState(() => getStored('claypull_repo', ''));
+  const [level, setLevel] = useState<SkillLevel>(() => getStored('claypull_level', 'beginner'));
+  const [provider, setProvider] = useState<ModelProvider>(() => getStored('claypull_provider', 'ollama-local'));
+  const [endpoint, setEndpoint] = useState(() => getStored('claypull_endpoint', 'http://localhost:11434'));
+  const [model, setModel] = useState(() => getStored('claypull_model', 'qwen2.5-coder:7b'));
+  const [apiKey, setApiKey] = useState(() => getStored('claypull_apikey', ''));
+  const [ghToken, setGhToken] = useState(() => getStored('claypull_ghtoken', ''));
+
+  // Sync to localStorage
+  useEffect(() => { setStored('claypull_repo', repoUrl); }, [repoUrl]);
+  useEffect(() => { setStored('claypull_level', level); }, [level]);
+  useEffect(() => { setStored('claypull_provider', provider); }, [provider]);
+  useEffect(() => { setStored('claypull_endpoint', endpoint); }, [endpoint]);
+  useEffect(() => { setStored('claypull_model', model); }, [model]);
+  useEffect(() => { setStored('claypull_apikey', apiKey); }, [apiKey]);
+  useEffect(() => { setStored('claypull_ghtoken', ghToken); }, [ghToken]);
 
   // ── Config State (Model B for Comparison) ──
   const [providerB, setProviderB] = useState<ModelProvider>('ollama-local');
@@ -128,14 +154,27 @@ export default function App() {
   const [stage, setStage] = useState<PipelineStage>('idle');
   const [message, setMessage] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<AnalysisResult | null>(null);
+  const [result, setResult] = useState<AnalysisResult | null>(() => getStored('claypull_result', null));
   const [comparisonResult, setComparisonResult] = useState<ModelComparisonResult | null>(null);
   const [ollamaModels, setOllamaModels] = useState<string[]>([]);
   const [loadingModels, setLoadingModels] = useState(false);
 
+  // Sync analysis result
+  useEffect(() => {
+    if (result) {
+      setStored('claypull_result', result);
+    }
+  }, [result]);
+
   // ── Interactive Checklist State ──
-  const [checkedSteps, setCheckedSteps] = useState<Record<string, boolean>>({});
+  const [checkedSteps, setCheckedSteps] = useState<Record<string, boolean>>(() =>
+    getStored('claypull_checked_steps', {}),
+  );
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
+
+  useEffect(() => {
+    setStored('claypull_checked_steps', checkedSteps);
+  }, [checkedSteps]);
 
   const toggleStep = (issueNum: number, stepIdx: number) => {
     const key = `${issueNum}-${stepIdx}`;

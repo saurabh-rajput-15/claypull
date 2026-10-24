@@ -1,4 +1,4 @@
-# FirstPR — Product Requirements Document
+# ClayPull — Product Requirements Document
 
 **Event:** Hacktoberfest Hack Day Dhule × ARIF
 **Track:** Best Open-Source AI Project
@@ -9,7 +9,7 @@
 
 ## 1. One-line pitch
 
-FirstPR is an open-source contribution coach: paste a GitHub repo URL, pick your skill level, and a locally running open-weight model finds three beginner-friendly issues, explains them in plain language, and gives you a step-by-step plan from fork to pull request.
+ClayPull is an open-source contribution coach & AI IDE studio: paste a GitHub repo URL, pick your skill level, and a locally running open-weight model finds three beginner-friendly issues, explains them in plain language, and gives you a step-by-step plan from fork to pull request.
 
 ## 2. Problem
 

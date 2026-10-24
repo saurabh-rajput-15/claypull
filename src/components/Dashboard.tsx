@@ -36,7 +36,7 @@ import type {
   RankedIssue,
 } from '../types';
 import { generateMasterPrompts } from '../masterPrompts';
-import { FIRSTPR_MCP_TOOLS, getMCPClientConfig } from '../mcp';
+import { CLAYPULL_MCP_TOOLS, getMCPClientConfig } from '../mcp';
 import { generateMarkdownReport, downloadMarkdown } from '../export';
 
 interface Preset {
@@ -130,7 +130,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <GitPullRequest size={20} />
           </div>
           <div>
-            <div className="sidebar-title">FirstPR Studio</div>
+            <div className="sidebar-title">ClayPull Studio</div>
             <div className="sidebar-subtitle">AI IDE & Contributor Hub</div>
           </div>
         </div>
@@ -207,7 +207,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
               className="sidebar-action-btn"
               onClick={() => {
                 const md = generateMarkdownReport(result);
-                downloadMarkdown(md, `firstpr-${cleanRepo.replace(/[/\\:]/g, '-')}.md`);
+                downloadMarkdown(md, `claypull-${cleanRepo.replace(/[/\\:]/g, '-')}.md`);
               }}
             >
               <Download size={14} />
@@ -700,8 +700,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 <h3 style={{ fontSize: 20, fontWeight: 600 }}>Model Context Protocol (MCP) Server Hub</h3>
               </div>
               <p style={{ fontSize: 14, color: 'var(--color-muted)', lineHeight: 1.6 }}>
-                Connect FirstPR directly to <strong>Google Antigravity IDE</strong>, <strong>Claude Desktop</strong>,
-                <strong>Cursor</strong>, or <strong>Windsurf</strong>. FirstPR exposes native tools over stdio JSON-RPC so
+                Connect ClayPull directly to <strong>Google Antigravity IDE</strong>, <strong>Claude Desktop</strong>,
+                <strong>Cursor</strong>, or <strong>Windsurf</strong>. ClayPull exposes native tools over stdio JSON-RPC so
                 AI agents can analyze repositories and triage issues on demand.
               </p>
             </div>
@@ -756,11 +756,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
             {/* MCP Exposed Tools List */}
             <h3 style={{ fontSize: 18, fontWeight: 600, marginTop: 32, marginBottom: 16 }}>
-              🛠️ Tools Provided by FirstPR MCP Server
+              🛠️ Tools Provided by ClayPull MCP Server
             </h3>
 
             <div className="mcp-tools-grid">
-              {FIRSTPR_MCP_TOOLS.map((tool) => (
+              {CLAYPULL_MCP_TOOLS.map((tool) => (
                 <div key={tool.name} className="mcp-tool-card">
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
                     <span className="mcp-tool-name">{tool.name}</span>

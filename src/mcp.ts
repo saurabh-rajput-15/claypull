@@ -1,9 +1,9 @@
 import type { MCPTarget, MCPToolDefinition } from './types';
 
-export const FIRSTPR_MCP_TOOLS: MCPToolDefinition[] = [
+export const CLAYPULL_MCP_TOOLS: MCPToolDefinition[] = [
   {
-    name: 'firstpr_analyze_repo',
-    description: 'Analyze an open-source GitHub repository to extract stack, setup commands, and contribution rules.',
+    name: 'claypull_analyze_repo',
+    description: 'Analyze an open-source GitHub repository to extract stack, setup friction index, commands, and contribution rules.',
     parameters: {
       type: 'object',
       properties: {
@@ -20,8 +20,8 @@ export const FIRSTPR_MCP_TOOLS: MCPToolDefinition[] = [
     },
   },
   {
-    name: 'firstpr_triage_beginner_issues',
-    description: 'Find and rank the top 3 beginner-friendly ("good first issue") tickets in a repository.',
+    name: 'claypull_triage_beginner_issues',
+    description: 'Find and rank the top 3 beginner-friendly ("good first issue") tickets in a repository with blast radius analysis.',
     parameters: {
       type: 'object',
       properties: {
@@ -40,7 +40,7 @@ export const FIRSTPR_MCP_TOOLS: MCPToolDefinition[] = [
     },
   },
   {
-    name: 'firstpr_generate_pr_plan',
+    name: 'claypull_generate_pr_plan',
     description: 'Generate a step-by-step fork-to-PR plan with verified file paths for a specific issue number.',
     parameters: {
       type: 'object',
@@ -58,7 +58,7 @@ export const FIRSTPR_MCP_TOOLS: MCPToolDefinition[] = [
     },
   },
   {
-    name: 'firstpr_export_agent_prompt',
+    name: 'claypull_export_agent_prompt',
     description: 'Generate a high-performance master prompt formatted for Claude Code, Antigravity, Cursor, or Codex.',
     parameters: {
       type: 'object',
@@ -76,13 +76,16 @@ export const FIRSTPR_MCP_TOOLS: MCPToolDefinition[] = [
   },
 ];
 
+// Alias for backward compatibility
+export const FIRSTPR_MCP_TOOLS = CLAYPULL_MCP_TOOLS;
+
 export function getMCPClientConfig(target: MCPTarget, serverPath = 'c:/Users/saura/Downloads/hacktoberfest/mcp/server.js'): string {
   switch (target) {
     case 'antigravity':
       return JSON.stringify(
         {
           mcpServers: {
-            firstpr: {
+            claypull: {
               command: 'node',
               args: [serverPath],
               env: {
@@ -100,7 +103,7 @@ export function getMCPClientConfig(target: MCPTarget, serverPath = 'c:/Users/sau
       return JSON.stringify(
         {
           mcpServers: {
-            firstpr: {
+            claypull: {
               command: 'node',
               args: [serverPath],
               env: {
@@ -116,7 +119,7 @@ export function getMCPClientConfig(target: MCPTarget, serverPath = 'c:/Users/sau
     case 'cursor':
       return `# Cursor MCP Settings
 # Go to Cursor Settings -> Features -> MCP -> Add New MCP Server
-Name: firstpr
+Name: claypull
 Type: command
 Command: node ${serverPath}
 `;
@@ -125,7 +128,7 @@ Command: node ${serverPath}
       return JSON.stringify(
         {
           mcpServers: {
-            firstpr: {
+            claypull: {
               command: 'node',
               args: [serverPath],
             },

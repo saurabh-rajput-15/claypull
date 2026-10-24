@@ -1,17 +1,17 @@
 #!/usr/bin/env node
 
 /**
- * FirstPR Model Context Protocol (MCP) Server
+ * ClayPull Model Context Protocol (MCP) Server
  * Stdio JSON-RPC server enabling Claude Desktop, Antigravity, and Cursor
- * to natively invoke FirstPR repository analysis and issue plans.
+ * to natively invoke ClayPull repository analysis and issue plans.
  */
 
 import readline from 'node:readline';
 
 const TOOLS = [
   {
-    name: 'firstpr_analyze_repo',
-    description: 'Analyze an open-source GitHub repository to extract stack, setup commands, and contribution rules.',
+    name: 'claypull_analyze_repo',
+    description: 'Analyze an open-source GitHub repository to extract stack, setup friction index, commands, and contribution rules.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -21,8 +21,8 @@ const TOOLS = [
     },
   },
   {
-    name: 'firstpr_triage_beginner_issues',
-    description: 'Find and rank beginner-friendly ("good first issue") tickets in a repository.',
+    name: 'claypull_triage_beginner_issues',
+    description: 'Find and rank beginner-friendly ("good first issue") tickets in a repository with blast radius analysis.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -33,7 +33,7 @@ const TOOLS = [
     },
   },
   {
-    name: 'firstpr_generate_pr_plan',
+    name: 'claypull_generate_pr_plan',
     description: 'Generate step-by-step fork-to-PR plan with verified files for a specific issue number.',
     inputSchema: {
       type: 'object',
@@ -74,7 +74,7 @@ rl.on('line', (line) => {
           tools: {},
         },
         serverInfo: {
-          name: 'firstpr-mcp-server',
+          name: 'claypull-mcp-server',
           version: '1.0.0',
         },
       });
@@ -94,7 +94,7 @@ rl.on('line', (line) => {
       const { name, arguments: args } = params;
       const cleanRepo = (args?.repo || 'example/repo').replace(/^https?:\/\/github\.com\//, '');
 
-      if (name === 'firstpr_analyze_repo') {
+      if (name === 'claypull_analyze_repo' || name === 'firstpr_analyze_repo') {
         sendResponse(id, {
           content: [
             {
@@ -102,7 +102,9 @@ rl.on('line', (line) => {
               text: JSON.stringify(
                 {
                   repo: cleanRepo,
-                  purpose: `Repository ${cleanRepo} analyzed by FirstPR coach.`,
+                  purpose: `Repository ${cleanRepo} analyzed by ClayPull coach.`,
+                  frictionScore: 2,
+                  frictionLabel: 'Effortless',
                   stack: ['TypeScript', 'Node.js', 'Vite'],
                   setupSteps: ['git clone ...', 'npm install', 'npm test'],
                   contributionRules: ['Keep PRs small', 'Follow conventional commits'],
@@ -116,7 +118,7 @@ rl.on('line', (line) => {
         return;
       }
 
-      if (name === 'firstpr_triage_beginner_issues') {
+      if (name === 'claypull_triage_beginner_issues' || name === 'firstpr_triage_beginner_issues') {
         sendResponse(id, {
           content: [
             {
@@ -130,12 +132,14 @@ rl.on('line', (line) => {
                       number: 1042,
                       title: 'Docs: Fix typo and clarify configuration options',
                       fitScore: 0.95,
+                      blastRadius: 'Low / Isolated',
                       why: 'Low risk, clear reproduction, great for newcomers',
                     },
                     {
                       number: 1088,
                       title: 'Add input validation for missing parameter',
                       fitScore: 0.88,
+                      blastRadius: 'Low / Isolated',
                       why: 'Isolated bug fix with existing test suite coverage',
                     },
                   ],
@@ -149,7 +153,7 @@ rl.on('line', (line) => {
         return;
       }
 
-      if (name === 'firstpr_generate_pr_plan') {
+      if (name === 'claypull_generate_pr_plan' || name === 'firstpr_generate_pr_plan') {
         sendResponse(id, {
           content: [
             {
@@ -158,6 +162,7 @@ rl.on('line', (line) => {
                 {
                   repo: cleanRepo,
                   issue: args?.issue_number || 1042,
+                  blastRadius: 'Low / Isolated',
                   filesToTouch: [{ path: 'docs/guide.md', verified: true, reason: 'Contains documentation typo' }],
                   plan: [
                     'Fork repository on GitHub',
@@ -181,7 +186,7 @@ rl.on('line', (line) => {
         isError: true,
       });
     }
-  } catch (err) {
+  } catch {
     // Malformed request
   }
 });

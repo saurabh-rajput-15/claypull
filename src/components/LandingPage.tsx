@@ -149,7 +149,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <div className="nav-logo">
             <GitPullRequest size={20} />
           </div>
-          <span className="nav-wordmark">FirstPR</span>
+          <span className="nav-wordmark">ClayPull</span>
         </div>
         <div className="nav-links">
           <a href="#how-it-works" className="nav-link">How it works</a>
@@ -228,7 +228,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             How It Works — Feature Cards
             ════════════════════════════════ */}
         <section className="how-it-works" id="how-it-works">
-          <h2 className="how-it-works-title">How FirstPR works</h2>
+          <h2 className="how-it-works-title">How ClayPull works</h2>
           <p className="how-it-works-sub">
             Three AI-powered stages turn any GitHub repo into a personalized contribution roadmap.
           </p>
@@ -260,7 +260,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <h3>3. Master Prompts & MCP Server</h3>
               <p>
                 Generate 1-click master prompts tailored for Claude Code, Antigravity, Cursor, and Codex,
-                or connect FirstPR directly to your IDE as a native Model Context Protocol (MCP) server.
+                or connect ClayPull directly to your IDE as a native Model Context Protocol (MCP) server.
               </p>
             </div>
           </div>
@@ -685,7 +685,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 className="btn-secondary"
                 onClick={() => {
                   const md = generateMarkdownReport(result);
-                  downloadMarkdown(md, `firstpr-${repoUrl.replace(/[/\\:]/g, '-')}.md`);
+                  downloadMarkdown(md, `claypull-${repoUrl.replace(/[/\\:]/g, '-')}.md`);
                 }}
               >
                 <Download size={14} /> Export Markdown Report
@@ -914,7 +914,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 className="btn-secondary"
                 onClick={() => {
                   const md = generateComparisonReport(comparisonResult);
-                  downloadMarkdown(md, `firstpr-comparison-${repoUrl.replace(/[/\\:]/g, '-')}.md`);
+                  downloadMarkdown(md, `claypull-comparison-${repoUrl.replace(/[/\\:]/g, '-')}.md`);
                 }}
               >
                 <Download size={14} /> Export Comparison Report
@@ -1006,7 +1006,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <div className="footer-brand">
             <div className="footer-brand-name">
               <GitPullRequest size={20} />
-              FirstPR
+              ClayPull
             </div>
             <p className="footer-brand-desc">
               Open-source contribution coach. Built for Hacktoberfest Hack Day Dhule × ARIF.

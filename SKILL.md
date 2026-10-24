@@ -1,11 +1,11 @@
 ---
-name: firstpr
-description: Open-source contribution coach that analyzes a GitHub repository, computes setup friction and blast radius, triages beginner issues, generates master prompts for Claude Code & Antigravity, and exposes native tools via Model Context Protocol (MCP).
+name: claypull
+description: Open-source contribution coach and AI IDE studio that analyzes a GitHub repository, computes setup friction and blast radius, triages beginner issues, generates master prompts for Claude Code & Antigravity, and exposes native tools via Model Context Protocol (MCP).
 ---
 
-# FirstPR Agent Skill
+# ClayPull Agent Skill
 
-FirstPR guides contributors from repo URL to their first successful Pull Request during Hacktoberfest. It runs locally using open-weight models (via Ollama), cloud endpoints, or directly inside AI IDEs via the Model Context Protocol (MCP).
+ClayPull guides contributors from repo URL to their first successful Pull Request during Hacktoberfest. It runs locally using open-weight models (via Ollama), cloud endpoints, or directly inside AI IDEs via the Model Context Protocol (MCP).
 
 ## When to Trigger
 
@@ -14,7 +14,7 @@ Trigger this skill when a user:
 - Wants to contribute to an open-source project but needs to assess setup friction and architecture.
 - Needs a surgical contribution plan and list of verified files to modify for an issue.
 - Wants a tailored Master Prompt for **Claude Code CLI**, **Google Antigravity**, **Cursor / Windsurf**, or **GitHub Copilot / Codex**.
-- Wants to connect an AI IDE to FirstPR using the **Model Context Protocol (MCP)**.
+- Wants to connect an AI IDE to ClayPull using the **Model Context Protocol (MCP)**.
 - Wants to compare two AI models side-by-side on their repo analysis and recommendation quality.
 
 ## Inputs
@@ -53,7 +53,7 @@ For each selected issue:
 
 ### Stage 4: Master Prompt & MCP Generation
 1. Formulate specialized Master Prompts formatted for **Claude Code CLI**, **Google Antigravity**, **Cursor**, **Codex**, and **Aider**.
-2. Expose the results as stdio MCP tools (`firstpr_analyze_repo`, `firstpr_triage_beginner_issues`, `firstpr_generate_pr_plan`).
+2. Expose the results as stdio MCP tools (`claypull_analyze_repo`, `claypull_triage_beginner_issues`, `claypull_generate_pr_plan`).
 
 ## Web Interfaces & Routes
 
