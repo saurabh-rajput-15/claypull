@@ -145,11 +145,26 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           Top Navigation
           ════════════════════════════════ */}
       <nav className="top-nav">
-        <div className="nav-brand">
-          <div className="nav-logo">
-            <GitPullRequest size={20} />
+        <div
+          className="nav-brand"
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          style={{ cursor: 'pointer' }}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+          }}
+          aria-label="ClayPull Home"
+        >
+          <div className="nav-brand-pill">
+            <img
+              src="/Claypull Circuit Tree Logo.png"
+              alt="ClayPull"
+              className="nav-brand-logo-img"
+            />
           </div>
-          <span className="nav-wordmark">ClayPull</span>
         </div>
         <div className="nav-links">
           <a href="#how-it-works" className="nav-link">How it works</a>
@@ -159,10 +174,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             className="nav-link"
             onClick={() => {
               setRepoUrl('facebook/react');
-              applyPreset(presets[5]); // Demo
+              applyPreset(presets[0]); // Deep Static Engine
             }}
           >
-            Try Demo
+            Instant Scan
           </button>
           <button
             type="button"
@@ -426,21 +441,21 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   </button>
                   <button
                     type="button"
-                    className={provider === 'mock-demo' ? 'active' : ''}
+                    className={provider === 'mock-demo' || provider === 'deep-heuristic' ? 'active' : ''}
                     onClick={() => {
-                      setProvider('mock-demo');
+                      setProvider('deep-heuristic');
                       setEndpoint('');
-                      setModel('gemma4-mock:e4b');
+                      setModel('claypull-deep-static:v1');
                     }}
                     disabled={isRunning}
                   >
                     <Zap size={14} />
-                    Instant Demo
+                    Deep Static Engine
                   </button>
                 </div>
               </div>
 
-              {provider !== 'mock-demo' && (
+              {provider !== 'mock-demo' && provider !== 'deep-heuristic' && (
                 <div className="config-row">
                   <div className="field">
                     <label htmlFor="endpoint">Endpoint URL</label>
@@ -552,21 +567,21 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                     </button>
                     <button
                       type="button"
-                      className={providerB === 'mock-demo' ? 'active' : ''}
+                      className={providerB === 'mock-demo' || providerB === 'deep-heuristic' ? 'active' : ''}
                       onClick={() => {
-                        setProviderB('mock-demo');
+                        setProviderB('deep-heuristic');
                         setEndpointB('');
-                        setModelB('llama3.2-mock:3b');
+                        setModelB('claypull-deep-static:v1');
                       }}
                       disabled={isRunning}
                     >
                       <Zap size={14} />
-                      Mock Model
+                      Static Engine
                     </button>
                   </div>
                 </div>
 
-                {providerB !== 'mock-demo' && (
+                {providerB !== 'mock-demo' && providerB !== 'deep-heuristic' && (
                   <div className="config-row">
                     <div className="field">
                       <label htmlFor="endpoint-b">Endpoint URL</label>
@@ -1009,9 +1024,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       <footer className="footer">
         <div className="footer-inner">
           <div className="footer-brand">
-            <div className="footer-brand-name">
-              <GitPullRequest size={20} />
-              ClayPull
+            <div className="footer-brand-pill">
+              <img
+                src="/Claypull Circuit Tree Logo.png"
+                alt="ClayPull"
+                className="footer-brand-logo-img"
+              />
             </div>
             <p className="footer-brand-desc">
               Open-source contribution coach. Built for Hacktoberfest Hack Day Dhule × ARIF.

@@ -25,118 +25,30 @@ function resolveOllamaBase(endpoint: string): string {
 }
 
 /**
- * Generate mock analysis responses for demo or offline testing.
- */
-function getMockCompletion(messages: ChatMessage[]): string {
-  const userMsg = messages.find((m) => m.role === 'user')?.content || '';
-
-  if (userMsg.includes('produce a JSON summary')) {
-    // Stage 1: Summarize + Deep Intelligence
-    return JSON.stringify({
-      purpose: 'An open-source library and toolchain designed to make building high-performance modern applications straightforward and enjoyable.',
-      stack: ['TypeScript', 'React', 'Node.js', 'Vite'],
-      setupSteps: [
-        'Clone the repository and install dependencies with `npm install`',
-        'Copy `.env.example` to `.env` if required',
-        'Run test suite with `npm test`',
-        'Start development server with `npm run dev`'
-      ],
-      contributionRules: [
-        'Read CONTRIBUTING.md before opening a PR',
-        'Ensure all unit tests pass and add tests for new code',
-        'Follow existing code conventions and formatting guidelines',
-        'Link relevant issue numbers in PR description'
-      ],
-      intelligence: {
-        frictionScore: 2,
-        frictionLabel: 'Effortless',
-        maintainerVelocity: 'High · PRs reviewed within ~48 hours',
-        testFramework: 'Vitest + Playwright',
-        setupComplexity: 'One-Command',
-        hotspotDirectories: ['src/core', 'packages/utils'],
-        welcomeScore: 94
-      }
-    });
-  }
-
-  if (userMsg.includes('Select the TOP 3 issues')) {
-    // Stage 2: Rank
-    return JSON.stringify({
-      issues: [
-        {
-          number: 1042,
-          title: 'Docs: Fix typo and clarify configuration options in getting started guide',
-          url: 'https://github.com/example/repo/issues/1042',
-          fitScore: 0.96,
-          whyThisOne: 'Clear scope, zero risk of breaking production code, and directly helps new users onboard.'
-        },
-        {
-          number: 1088,
-          title: 'Add input validation and descriptive error message for missing options parameter',
-          url: 'https://github.com/example/repo/issues/1088',
-          fitScore: 0.88,
-          whyThisOne: 'Isolated bug fix with existing test suite coverage; perfect for practicing unit tests.'
-        },
-        {
-          number: 1115,
-          title: 'Export missing utility type helper in index definitions',
-          url: 'https://github.com/example/repo/issues/1115',
-          fitScore: 0.82,
-          whyThisOne: 'Straightforward TypeScript type export fix that touches just two files.'
-        }
-      ]
-    });
-  }
-
-  // Stage 3: Plan
-  return JSON.stringify({
-    plainExplanation: 'This issue asks for better error boundaries and parameter checks when users pass incomplete arguments. It ensures developers get an actionable error message rather than a generic crash.',
-    blastRadius: 'Low / Isolated',
-    estimatedDiffLines: '15-25 lines',
-    filesToTouch: [
-      { path: 'src/config.ts', reason: 'Contains argument validation logic where check should be added', verified: true },
-      { path: 'test/config.test.ts', reason: 'Add unit tests asserting the descriptive error is thrown', verified: true }
-    ],
-    plan: [
-      'Fork the repository on GitHub and clone to your local machine',
-      'Create a branch: git checkout -b fix/issue-parameter-validation',
-      'Locate argument parsing function in src/config.ts and add null check',
-      'Run npm test to verify existing tests still pass',
-      'Add a new test in test/config.test.ts verifying the error message',
-      'Commit with conventional commit: git commit -m "fix(config): add descriptive error for missing options"',
-      'Push branch and submit Pull Request referencing the issue'
-    ],
-    effort: '30-45 minutes',
-    risks: ['Make sure not to break backwards compatibility with optional configurations']
-  });
-}
-
-/**
  * Calls an OpenAI-compatible or Ollama chat completions endpoint.
- * Works seamlessly across:
+ * Works across:
  *   - Local Ollama on dev/preview (http://localhost:11434 via Vite /ollama proxy)
  *   - Deployed link (https://claypull.vercel.app/ via /api/ollama serverless proxy or HTTPS tunnels)
  *   - Ollama Cloud / Remote Ollama instances
- *   - Cloud APIs (Groq, OpenRouter, OpenAI, DeepSeek)
- *   - Instant Mock Demo mode (offline testing)
+ *   - Cloud APIs (Groq, OpenRouter, OpenAI, DeepSeek, Google Gemini)
+ *   - Instant Deep Static Intelligence Engine
  */
 export async function chatCompletion(
   config: LLMConfig,
   messages: ChatMessage[],
   jsonMode = true,
 ): Promise<string> {
-  // If mock mode is selected, return simulated response with brief realistic latency
-  if (config.provider === 'mock-demo') {
-    await new Promise((resolve) => setTimeout(resolve, 600));
-    return getMockCompletion(messages);
+  // If instant deep heuristic is selected, we don't need external LLM
+  if (config.provider === 'mock-demo' || config.provider === 'deep-heuristic') {
+    return '{}';
   }
 
   const isHttps = typeof window !== 'undefined' && window.location.protocol === 'https:';
   const cleanEndpoint = config.endpoint.replace(/\/+$/, '');
   const isLocalhostEndpoint = cleanEndpoint.startsWith('http://localhost') || cleanEndpoint.startsWith('http://127.0.0.1');
 
-  // If deployed on HTTPS (e.g. https://claypull.vercel.app/) and calling a remote URL (not localhost),
-  // route through the /api/ollama serverless proxy to eliminate browser CORS restrictions completely
+  // If deployed on HTTPS and calling a remote URL (not localhost),
+  // route through the /api/ollama serverless proxy to eliminate browser CORS restrictions
   const useServerlessProxy = isHttps && !isLocalhostEndpoint;
 
   if (useServerlessProxy) {
@@ -157,7 +69,6 @@ export async function chatCompletion(
         const data = await res.json();
         return data.choices?.[0]?.message?.content ?? (typeof data === 'string' ? data : '');
       }
-      // If serverless proxy returned an error, capture it or fall through to direct fetch
       const errJson = await res.json().catch(() => ({}));
       if (errJson.error || errJson.details) {
         throw new Error(errJson.error || errJson.details);
@@ -178,7 +89,7 @@ export async function chatCompletion(
   } else if (config.provider === 'ollama-cloud') {
     url = cleanEndpoint.endsWith('/v1') ? `${cleanEndpoint}/chat/completions` : `${cleanEndpoint}/v1/chat/completions`;
   } else {
-    // custom-endpoint
+    // custom-endpoint / cloud API (Groq, OpenRouter, OpenAI, etc.)
     url = cleanEndpoint.endsWith('/chat/completions') ? cleanEndpoint : `${cleanEndpoint}/chat/completions`;
   }
 
@@ -186,7 +97,7 @@ export async function chatCompletion(
     'Content-Type': 'application/json',
   };
   if (config.apiKey) {
-    headers['Authorization'] = `Bearer ${config.apiKey}`;
+    headers['Authorization'] = `Bearer ${config.apiKey.trim()}`;
   }
 
   const body: Record<string, unknown> = {
@@ -220,12 +131,12 @@ export async function chatCompletion(
         if (config.provider === 'ollama-local') {
           if (isHttps) {
             throw new Error(
-              `Could not connect to local Ollama from https://claypull.vercel.app (blocked by browser HTTPS-to-HTTP mixed content). To use local Ollama with the deployed link: 1) Run 'npm run tunnel' or 'npx localtunnel --port 11434' and paste the https:// URL into Endpoint, or 2) Run locally at http://localhost:5174, or 3) Switch to Instant Demo or Cloud API.`,
+              `Could not connect to local Ollama from deployed HTTPS. Run 'npm run tunnel' or switch to Deep Heuristic Engine / Cloud API.`,
               { cause: err },
             );
           }
           throw new Error(
-            `Could not connect to local Ollama at ${config.endpoint}. Please make sure Ollama is running ('ollama serve') or switch to Demo Mode.`,
+            `Could not connect to local Ollama at ${config.endpoint}. Please make sure Ollama is running ('ollama serve') or switch to Deep Heuristic Engine.`,
             { cause: err },
           );
         }

@@ -1,6 +1,6 @@
 // ── LLM Configuration ──
 
-export type ModelProvider = 'ollama-local' | 'ollama-cloud' | 'custom-endpoint' | 'mock-demo';
+export type ModelProvider = 'ollama-local' | 'ollama-cloud' | 'custom-endpoint' | 'mock-demo' | 'deep-heuristic';
 
 export interface LLMConfig {
   provider: ModelProvider;
@@ -53,6 +53,7 @@ export interface GitHubIssue {
   updatedAt: string;
   htmlUrl: string;
   hasPR: boolean;
+  images?: string[];
 }
 
 export interface FetchedRepoData {
@@ -61,6 +62,17 @@ export interface FetchedRepoData {
   contributing: string;
   tree: RepoFile[];
   issues: GitHubIssue[];
+}
+
+// ── Vision Bug Analysis ──
+
+export interface VisionAnalysisResult {
+  defectType: string; // e.g. "Alignment / Layout Shift", "Console Stack Trace", "Color Contrast", "Broken Asset"
+  visualDescription: string;
+  suggestedFix: string;
+  likelyComponents: FileToTouch[];
+  cssOrCodeSnippet?: string;
+  confidenceScore?: number;
 }
 
 // ── Pipeline Output & Deep Intelligence ──
@@ -102,6 +114,8 @@ export interface RankedIssue {
   risks: string[];
   blastRadius?: 'Low / Isolated' | 'Moderate' | 'Core Architecture';
   estimatedDiffLines?: string;
+  images?: string[];
+  visionAnalysis?: VisionAnalysisResult;
 }
 
 export interface AnalysisResult {

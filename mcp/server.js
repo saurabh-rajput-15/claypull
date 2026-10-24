@@ -8,6 +8,8 @@
 
 import readline from 'node:readline';
 
+const GITHUB_API = 'https://api.github.com';
+
 const TOOLS = [
   {
     name: 'claypull_analyze_repo',
@@ -46,6 +48,21 @@ const TOOLS = [
   },
 ];
 
+async function fetchGitHubJSON(path) {
+  const token = process.env.GITHUB_TOKEN;
+  const headers = { Accept: 'application/vnd.github+json' };
+  if (token) headers.Authorization = `Bearer ${token.trim()}`;
+  const res = await fetch(`${GITHUB_API}/${path}`, { headers });
+  if (!res.ok) throw new Error(`GitHub API error ${res.status}: ${res.statusText}`);
+  return res.json();
+}
+
+function parseOwnerRepo(repo) {
+  const clean = repo.replace(/^https?:\/\/github\.com\//, '').replace(/\.git$/, '');
+  const [owner, name] = clean.split('/');
+  return { owner, repo: name || owner };
+}
+
 const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout,
@@ -61,7 +78,7 @@ function sendResponse(id, result) {
   process.stdout.write(JSON.stringify(message) + '\n');
 }
 
-rl.on('line', (line) => {
+rl.on('line', async (line) => {
   if (!line.trim()) return;
   try {
     const request = JSON.parse(line);
@@ -92,99 +109,146 @@ rl.on('line', (line) => {
 
     if (method === 'tools/call') {
       const { name, arguments: args } = params;
-      const cleanRepo = (args?.repo || 'example/repo').replace(/^https?:\/\/github\.com\//, '');
+      const cleanRepo = (args?.repo || 'facebook/react').replace(/^https?:\/\/github\.com\//, '');
+      const { owner, repo: repoName } = parseOwnerRepo(cleanRepo);
 
-      if (name === 'claypull_analyze_repo' || name === 'firstpr_analyze_repo') {
+      try {
+        if (name === 'claypull_analyze_repo' || name === 'firstpr_analyze_repo') {
+          const repoMeta = await fetchGitHubJSON(`repos/${owner}/${repoName}`);
+          const defaultBranch = repoMeta.default_branch || 'main';
+
+          let tree = [];
+          try {
+            const treeData = await fetchGitHubJSON(`repos/${owner}/${repoName}/git/trees/${defaultBranch}?recursive=1`);
+            tree = (treeData.tree || []).slice(0, 150).map((t) => t.path.toLowerCase());
+          } catch {
+            tree = [];
+          }
+
+          const hasDocker = tree.some((p) => p.includes('dockerfile'));
+          const hasCargo = tree.some((p) => p.includes('cargo.toml'));
+          const hasPython = tree.some((p) => p.includes('pyproject.toml') || p.includes('requirements.txt'));
+          const hasNode = tree.some((p) => p.includes('package.json'));
+
+          const stack = [];
+          if (repoMeta.language) stack.push(repoMeta.language);
+          if (hasCargo) stack.push('Rust', 'Cargo');
+          if (hasPython) stack.push('Python', 'Pytest');
+          if (hasNode) stack.push('Node.js');
+          if (hasDocker) stack.push('Docker');
+
+          const frictionScore = hasCargo || hasNode ? 2 : hasDocker ? 5 : 3;
+
+          sendResponse(id, {
+            content: [
+              {
+                type: 'text',
+                text: JSON.stringify(
+                  {
+                    repo: `${owner}/${repoName}`,
+                    purpose: repoMeta.description || `Open-source project ${owner}/${repoName}`,
+                    stars: repoMeta.stargazers_count,
+                    stack: stack.length > 0 ? stack : [repoMeta.language || 'General'],
+                    frictionScore,
+                    frictionLabel: frictionScore <= 3 ? 'Effortless' : 'Moderate',
+                    testFramework: hasPython ? 'Pytest' : hasCargo ? 'Cargo Test' : 'npm test',
+                    setupSteps: [
+                      `git clone https://github.com/${owner}/${repoName}.git`,
+                      hasPython ? 'pip install -e .' : hasCargo ? 'cargo build' : 'npm install',
+                      hasPython ? 'pytest' : hasCargo ? 'cargo test' : 'npm test',
+                    ],
+                    contributionRules: [
+                      'Keep PR footprint surgical',
+                      'Run test suite locally before PR',
+                      'Follow conventional commit guidelines',
+                    ],
+                  },
+                  null,
+                  2,
+                ),
+              },
+            ],
+          });
+          return;
+        }
+
+        if (name === 'claypull_triage_beginner_issues' || name === 'firstpr_triage_beginner_issues') {
+          const rawIssues = await fetchGitHubJSON(`repos/${owner}/${repoName}/issues?state=open&per_page=30&sort=updated&direction=desc`);
+          const filtered = rawIssues
+            .filter((i) => !i.pull_request && !i.assignee)
+            .slice(0, 3)
+            .map((i) => ({
+              number: i.number,
+              title: i.title,
+              url: i.htmlUrl || `https://github.com/${owner}/${repoName}/issues/${i.number}`,
+              fitScore: 0.92,
+              blastRadius: /doc|typo|readme/i.test(i.title) ? 'Low / Isolated' : 'Moderate',
+              why: /doc|typo|readme/i.test(i.title)
+                ? 'Documentation enhancement with isolated blast radius and no regression risk.'
+                : 'Actionable open issue with low comment contention, suitable for newcomers.',
+              labels: (i.labels || []).map((l) => l.name),
+            }));
+
+          sendResponse(id, {
+            content: [
+              {
+                type: 'text',
+                text: JSON.stringify(
+                  {
+                    repo: `${owner}/${repoName}`,
+                    level: args?.skill_level || 'beginner',
+                    topIssues: filtered,
+                  },
+                  null,
+                  2,
+                ),
+              },
+            ],
+          });
+          return;
+        }
+
+        if (name === 'claypull_generate_pr_plan' || name === 'firstpr_generate_pr_plan') {
+          const issueNum = args?.issue_number;
+          const issue = await fetchGitHubJSON(`repos/${owner}/${repoName}/issues/${issueNum}`);
+
+          sendResponse(id, {
+            content: [
+              {
+                type: 'text',
+                text: JSON.stringify(
+                  {
+                    repo: `${owner}/${repoName}`,
+                    issue: issueNum,
+                    title: issue.title,
+                    blastRadius: 'Low / Isolated',
+                    plan: [
+                      `Fork https://github.com/${owner}/${repoName} and clone locally`,
+                      `Create branch: git checkout -b fix/issue-${issueNum}`,
+                      'Implement targeted fix in relevant files',
+                      'Run local test suite to verify no regressions',
+                      `Commit with conventional commit referencing #${issueNum} and open PR`,
+                    ],
+                  },
+                  null,
+                  2,
+                ),
+              },
+            ],
+          });
+          return;
+        }
+
         sendResponse(id, {
-          content: [
-            {
-              type: 'text',
-              text: JSON.stringify(
-                {
-                  repo: cleanRepo,
-                  purpose: `Repository ${cleanRepo} analyzed by ClayPull coach.`,
-                  frictionScore: 2,
-                  frictionLabel: 'Effortless',
-                  stack: ['TypeScript', 'Node.js', 'Vite'],
-                  setupSteps: ['git clone ...', 'npm install', 'npm test'],
-                  contributionRules: ['Keep PRs small', 'Follow conventional commits'],
-                },
-                null,
-                2,
-              ),
-            },
-          ],
+          content: [{ type: 'text', text: `Unknown tool: ${name}` }],
+          isError: true,
         });
-        return;
-      }
-
-      if (name === 'claypull_triage_beginner_issues' || name === 'firstpr_triage_beginner_issues') {
+      } catch (err) {
         sendResponse(id, {
-          content: [
-            {
-              type: 'text',
-              text: JSON.stringify(
-                {
-                  repo: cleanRepo,
-                  level: args?.skill_level || 'beginner',
-                  topIssues: [
-                    {
-                      number: 1042,
-                      title: 'Docs: Fix typo and clarify configuration options',
-                      fitScore: 0.95,
-                      blastRadius: 'Low / Isolated',
-                      why: 'Low risk, clear reproduction, great for newcomers',
-                    },
-                    {
-                      number: 1088,
-                      title: 'Add input validation for missing parameter',
-                      fitScore: 0.88,
-                      blastRadius: 'Low / Isolated',
-                      why: 'Isolated bug fix with existing test suite coverage',
-                    },
-                  ],
-                },
-                null,
-                2,
-              ),
-            },
-          ],
+          content: [{ type: 'text', text: `Tool execution error: ${err.message}` }],
+          isError: true,
         });
-        return;
       }
-
-      if (name === 'claypull_generate_pr_plan' || name === 'firstpr_generate_pr_plan') {
-        sendResponse(id, {
-          content: [
-            {
-              type: 'text',
-              text: JSON.stringify(
-                {
-                  repo: cleanRepo,
-                  issue: args?.issue_number || 1042,
-                  blastRadius: 'Low / Isolated',
-                  filesToTouch: [{ path: 'docs/guide.md', verified: true, reason: 'Contains documentation typo' }],
-                  plan: [
-                    'Fork repository on GitHub',
-                    'Create branch fix-typo',
-                    'Make edits in docs/guide.md',
-                    'Run test suite',
-                    'Open Pull Request',
-                  ],
-                },
-                null,
-                2,
-              ),
-            },
-          ],
-        });
-        return;
-      }
-
-      sendResponse(id, {
-        content: [{ type: 'text', text: `Unknown tool: ${name}` }],
-        isError: true,
-      });
     }
   } catch {
     // Malformed request

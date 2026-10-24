@@ -25,6 +25,9 @@ import {
   Terminal,
   Activity,
   FileText,
+  Image as ImageIcon,
+  Volume2,
+  VolumeX,
 } from 'lucide-react';
 import type {
   AnalysisResult,
@@ -34,10 +37,13 @@ import type {
   SkillLevel,
   MCPTarget,
   RankedIssue,
+  FetchedRepoData,
 } from '../types';
 import { generateMasterPrompts } from '../masterPrompts';
 import { CLAYPULL_MCP_TOOLS, getMCPClientConfig } from '../mcp';
 import { generateMarkdownReport, downloadMarkdown } from '../export';
+import { VisualFlowchart } from './VisualFlowchart';
+import { VisionStudio } from './VisionStudio';
 
 interface Preset {
   label: string;
@@ -75,9 +81,10 @@ interface DashboardProps {
   presets: Preset[];
   sampleRepos: string[];
   navigateToLanding: () => void;
+  repoData?: FetchedRepoData | null;
 }
 
-type DashboardTab = 'overview' | 'issues' | 'prompts' | 'mcp' | 'compare' | 'settings';
+type DashboardTab = 'overview' | 'issues' | 'vision' | 'prompts' | 'mcp' | 'compare' | 'settings';
 
 const CARD_COLORS = ['emerald', 'teal', 'amber', 'coral', 'indigo'] as const;
 
@@ -108,10 +115,35 @@ export const Dashboard: React.FC<DashboardProps> = ({
   copyToClipboard,
   sampleRepos,
   navigateToLanding,
+  repoData,
 }) => {
   const [activeTab, setActiveTab] = useState<DashboardTab>('overview');
   const [selectedIssueIdx, setSelectedIssueIdx] = useState<number>(0);
   const [mcpTarget, setMcpTarget] = useState<MCPTarget>('antigravity');
+  const [speakingIssueNum, setSpeakingIssueNum] = useState<number | null>(null);
+  const [customPromptAddition, setCustomPromptAddition] = useState<string>('');
+
+  const toggleAudioWalkthrough = (issue: RankedIssue) => {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
+      alert('Speech synthesis is not supported by your browser.');
+      return;
+    }
+    if (speakingIssueNum === issue.number) {
+      window.speechSynthesis.cancel();
+      setSpeakingIssueNum(null);
+      return;
+    }
+    window.speechSynthesis.cancel();
+    const primaryFile = issue.filesToTouch[0]?.path || 'the target file';
+    const text = `Here is your contribution plan for issue number ${issue.number}: ${issue.title}. ${issue.plainExplanation}. You will be editing ${primaryFile}. First, fork and clone the repository. Then create your branch. Make your surgical edits, verify with the test suite, and open your pull request. You've got this!`;
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 1.0;
+    utterance.pitch = 1.05;
+    utterance.onend = () => setSpeakingIssueNum(null);
+    utterance.onerror = () => setSpeakingIssueNum(null);
+    setSpeakingIssueNum(issue.number);
+    window.speechSynthesis.speak(utterance);
+  };
 
   const isRunning = stage !== 'idle' && stage !== 'done' && stage !== 'error';
   const cleanRepo = repoUrl.replace(/^https?:\/\/github\.com\//, '').replace(/\.git$/, '') || 'No Repository Selected';
@@ -125,13 +157,25 @@ export const Dashboard: React.FC<DashboardProps> = ({
           Sidebar
           ════════════════════════════════ */}
       <aside className="dashboard-sidebar">
-        <div className="sidebar-brand" onClick={navigateToLanding} style={{ cursor: 'pointer' }}>
-          <div className="sidebar-logo">
-            <GitPullRequest size={20} />
-          </div>
-          <div>
-            <div className="sidebar-title">ClayPull Studio</div>
-            <div className="sidebar-subtitle">AI IDE & Contributor Hub</div>
+        <div
+          className="sidebar-brand"
+          onClick={navigateToLanding}
+          style={{ cursor: 'pointer' }}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              navigateToLanding();
+            }
+          }}
+          aria-label="Back to ClayPull Home"
+        >
+          <div className="sidebar-brand-pill">
+            <img
+              src="/Claypull Circuit Tree Logo.png"
+              alt="ClayPull Studio"
+              className="sidebar-brand-logo-img"
+            />
           </div>
         </div>
 
@@ -158,6 +202,16 @@ export const Dashboard: React.FC<DashboardProps> = ({
           >
             <Target size={16} />
             <span>Triaged Issues ({result?.issues?.length || 0})</span>
+          </button>
+
+          <button
+            type="button"
+            className={`sidebar-nav-item ${activeTab === 'vision' ? 'active' : ''}`}
+            onClick={() => setActiveTab('vision')}
+          >
+            <ImageIcon size={16} />
+            <span>Vision Bug Studio</span>
+            <span className="sidebar-badge" style={{ backgroundColor: '#fef3c7', color: '#92400e' }}>Vision AI</span>
           </button>
 
           <button
@@ -475,6 +529,15 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         </div>
 
                         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                          <button
+                            type="button"
+                            className={`btn-audio-walkthrough ${speakingIssueNum === issue.number ? 'active' : ''}`}
+                            onClick={() => toggleAudioWalkthrough(issue)}
+                            title="Listen to step-by-step voice PR coach"
+                          >
+                            {speakingIssueNum === issue.number ? <VolumeX size={13} /> : <Volume2 size={13} />}
+                            <span>{speakingIssueNum === issue.number ? 'Stop Audio' : '🎧 Audio Coach'}</span>
+                          </button>
                           {issue.blastRadius && (
                             <span className="file-badge verified">
                               {issue.blastRadius}
@@ -488,6 +551,27 @@ export const Dashboard: React.FC<DashboardProps> = ({
                       </div>
 
                       <div className="issue-body">
+                        {/* Auto-detected Issue Screenshot Banner */}
+                        {issue.images && issue.images.length > 0 && (
+                          <div className="issue-visual-defect-callout">
+                            <div className="defect-callout-info">
+                              <ImageIcon size={15} />
+                              <span><strong>{issue.images.length} UI Screenshot{issue.images.length > 1 ? 's' : ''}</strong> attached to this issue description.</span>
+                            </div>
+                            <button
+                              type="button"
+                              className="btn-vision-chip"
+                              onClick={() => {
+                                setSelectedIssueIdx(idx);
+                                setActiveTab('vision');
+                              }}
+                            >
+                              <Sparkles size={13} />
+                              Inspect in Vision Studio →
+                            </button>
+                          </div>
+                        )}
+
                         <div>
                           <div className="issue-section-title">
                             <Star size={11} /> Why this issue?
@@ -552,6 +636,15 @@ export const Dashboard: React.FC<DashboardProps> = ({
                           </div>
                         </div>
 
+                        {/* Interactive Visual Fork-to-PR Architectural Roadmap */}
+                        <VisualFlowchart
+                          repoName={cleanRepo}
+                          issueNumber={issue.number}
+                          blastRadius={issue.blastRadius}
+                          verifiedFiles={issue.filesToTouch}
+                          testFramework={result.repo.intelligence?.testFramework || 'Test Suite'}
+                        />
+
                         {/* Git Commands & Master Prompt Shortcut */}
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 12, alignItems: 'center' }}>
                           <div className="git-command-box">
@@ -595,6 +688,52 @@ export const Dashboard: React.FC<DashboardProps> = ({
         )}
 
         {/* ════════════════════════════════
+            Tab: Multimodal Vision Bug Triage Studio
+            ════════════════════════════════ */}
+        {activeTab === 'vision' && (
+          <div className="dashboard-view">
+            <VisionStudio
+              repoData={
+                repoData || (result ? {
+                  meta: {
+                    fullName: cleanRepo,
+                    description: result.repo.purpose,
+                    language: result.repo.stack[0] || 'TypeScript',
+                    stars: 0,
+                    forks: 0,
+                    openIssues: result.issues.length,
+                    topics: [],
+                    defaultBranch: 'main',
+                    htmlUrl: `https://github.com/${cleanRepo}`,
+                  },
+                  readme: '',
+                  contributing: result.repo.contributionRules.join('\n'),
+                  tree: result.issues.flatMap((i) => i.filesToTouch.map((f) => ({ path: f.path, type: 'file' as const }))),
+                  issues: result.issues.map((i) => ({
+                    number: i.number,
+                    title: i.title,
+                    body: i.plainExplanation,
+                    labels: [],
+                    commentCount: 0,
+                    assignee: null,
+                    updatedAt: '',
+                    htmlUrl: i.url,
+                    hasPR: false,
+                    images: i.images,
+                  })),
+                } : null)
+              }
+              selectedIssue={currentIssue}
+              config={{ provider, model, endpoint, apiKey: apiKey || undefined }}
+              onInjectIntoPrompts={(addition) => {
+                setCustomPromptAddition((prev) => prev + addition);
+                setActiveTab('prompts');
+              }}
+            />
+          </div>
+        )}
+
+        {/* ════════════════════════════════
             Tab 3: Master Prompt Studio (Separate per Repo + Issue)
             ════════════════════════════════ */}
         {activeTab === 'prompts' && (
@@ -621,6 +760,22 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   ))}
                 </div>
 
+                {customPromptAddition && (
+                  <div className="issue-visual-defect-callout" style={{ marginBottom: 16 }}>
+                    <div className="defect-callout-info">
+                      <Sparkles size={16} />
+                      <span><strong>Vision Bug Diagnosis Active:</strong> Visual defect diagnosis & CSS fix injected into all Master Prompts below.</span>
+                    </div>
+                    <button
+                      type="button"
+                      className="btn-copy-small"
+                      onClick={() => setCustomPromptAddition('')}
+                    >
+                      Clear Diagnosis
+                    </button>
+                  </div>
+                )}
+
                 <div className="studio-intro-card">
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
                     <Sparkles size={18} color="#4f46e5" />
@@ -635,6 +790,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 <div className="prompts-grid">
                   {masterPrompts.map((mp) => {
                     const isCopied = copiedKey === `prompt-${mp.id}`;
+                    const fullPromptText = mp.prompt + (customPromptAddition ? '\n\n' + customPromptAddition : '');
                     return (
                       <div key={mp.id} className="prompt-card">
                         <div className="prompt-card-header">
@@ -652,7 +808,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                             type="button"
                             className="btn-primary"
                             style={{ height: 36, padding: '0 16px', fontSize: 12 }}
-                            onClick={() => copyToClipboard(mp.cliCommand || mp.prompt, `prompt-${mp.id}`)}
+                            onClick={() => copyToClipboard(mp.cliCommand || fullPromptText, `prompt-${mp.id}`)}
                           >
                             {isCopied ? (
                               <>
@@ -678,7 +834,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         )}
 
                         <div className="prompt-text-box">
-                          <pre>{mp.prompt}</pre>
+                          <pre>{fullPromptText}</pre>
                         </div>
                       </div>
                     );
@@ -895,14 +1051,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   </button>
                   <button
                     type="button"
-                    className={provider === 'mock-demo' ? 'active' : ''}
+                    className={provider === 'mock-demo' || provider === 'deep-heuristic' ? 'active' : ''}
                     onClick={() => {
-                      setProvider('mock-demo');
+                      setProvider('deep-heuristic');
                       setEndpoint('');
-                      setModel('gemma4-mock:e4b');
+                      setModel('claypull-deep-static:v1');
                     }}
                   >
-                    <Zap size={14} /> Demo Mode
+                    <Zap size={14} /> Deep Static Engine
                   </button>
                 </div>
               </div>

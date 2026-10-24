@@ -8,7 +8,7 @@ import type {
   FetchedRepoData,
   ModelComparisonResult,
 } from './types';
-import { fetchRepoData } from './github';
+import { fetchRepoData, sanitizeGitHubToken } from './github';
 import { listOllamaModels } from './llm';
 import { runPipeline, runModelComparison } from './pipeline';
 import { LandingPage } from './components/LandingPage';
@@ -24,6 +24,13 @@ interface Preset {
 }
 
 const PRESETS: Preset[] = [
+  {
+    label: 'Deep Heuristic Engine (Instant / Zero Setup)',
+    provider: 'deep-heuristic',
+    endpoint: '',
+    model: 'claypull-deep-static:v1',
+    needsKey: false,
+  },
   {
     label: 'Local Ollama (Gemma 4)',
     provider: 'ollama-local',
@@ -65,13 +72,6 @@ const PRESETS: Preset[] = [
     endpoint: 'https://api.openai.com/v1',
     model: 'gpt-4o-mini',
     needsKey: true,
-  },
-  {
-    label: 'Offline Demo (No Setup Needed)',
-    provider: 'mock-demo',
-    endpoint: '',
-    model: 'gemma4-mock:e4b',
-    needsKey: false,
   },
 ];
 
@@ -140,7 +140,12 @@ export default function App() {
   const [endpoint, setEndpoint] = useState(() => getStored('claypull_endpoint', 'http://localhost:11434'));
   const [model, setModel] = useState(() => getStored('claypull_model', 'gemma4:e4b'));
   const [apiKey, setApiKey] = useState(() => getStored('claypull_apikey', ''));
-  const [ghToken, setGhToken] = useState(() => getStored('claypull_ghtoken', ''));
+  const [ghToken, setGhToken] = useState(() => {
+    const stored = getStored<string>('claypull_ghtoken', '');
+    if (stored && stored.trim()) return sanitizeGitHubToken(stored);
+    const envToken = (import.meta.env.VITE_GITHUB_TOKEN as string) || '';
+    return sanitizeGitHubToken(envToken);
+  });
 
   // Sync to localStorage
   useEffect(() => { setStored('claypull_repo', repoUrl); }, [repoUrl]);
@@ -149,7 +154,7 @@ export default function App() {
   useEffect(() => { setStored('claypull_endpoint', endpoint); }, [endpoint]);
   useEffect(() => { setStored('claypull_model', model); }, [model]);
   useEffect(() => { setStored('claypull_apikey', apiKey); }, [apiKey]);
-  useEffect(() => { setStored('claypull_ghtoken', ghToken); }, [ghToken]);
+  useEffect(() => { setStored('claypull_ghtoken', sanitizeGitHubToken(ghToken)); }, [ghToken]);
 
   // ── Config State (Model B for Comparison) ──
   const [providerB, setProviderB] = useState<ModelProvider>('ollama-local');
@@ -165,6 +170,7 @@ export default function App() {
   const [comparisonResult, setComparisonResult] = useState<ModelComparisonResult | null>(null);
   const [ollamaModels, setOllamaModels] = useState<string[]>([]);
   const [loadingModels, setLoadingModels] = useState(false);
+  const [repoData, setRepoData] = useState<FetchedRepoData | null>(null);
 
   // Sync analysis result
   useEffect(() => {
@@ -221,7 +227,10 @@ export default function App() {
 
   useEffect(() => {
     if (provider === 'ollama-local') {
-      refreshModels();
+      const timer = setTimeout(() => {
+        void refreshModels();
+      }, 0);
+      return () => clearTimeout(timer);
     }
   }, [provider, refreshModels]);
 
@@ -235,34 +244,17 @@ export default function App() {
     setMessage('Connecting to GitHub…');
 
     try {
-      const repoData: FetchedRepoData = await fetchRepoData(
+      const fetchedData: FetchedRepoData = await fetchRepoData(
         repoUrl,
         ghToken || undefined,
         (msg) => setMessage(msg),
       );
-
-      if (repoData.issues.length === 0) {
-        setStage('done');
-        setResult({
-          repo: {
-            purpose: repoData.meta.description,
-            stack: [repoData.meta.language],
-            setupSteps: [],
-            contributionRules: [],
-          },
-          issues: [],
-          latencyMs: 0,
-          modelUsed: model,
-        });
-        setMessage('Complete — but no beginner-labeled issues were found in this repo.');
-        return;
-      }
-
+      setRepoData(fetchedData);
       const configA: LLMConfig = { provider, model, endpoint, apiKey: apiKey || undefined };
 
       if (appMode === 'single') {
         const analysisResult = await runPipeline(
-          repoData,
+          fetchedData,
           level,
           configA,
           (s, msg) => {
@@ -283,7 +275,7 @@ export default function App() {
         };
 
         const comparison = await runModelComparison(
-          repoData,
+          fetchedData,
           level,
           configA,
           configB,
@@ -333,6 +325,7 @@ export default function App() {
         presets={PRESETS}
         sampleRepos={SAMPLE_REPOS}
         navigateToLanding={() => navigateTo('/')}
+        repoData={repoData}
       />
     );
   }

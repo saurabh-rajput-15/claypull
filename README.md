@@ -2,6 +2,9 @@
 
 <div align="center">
 
+<img src="public/Claypull%20Circuit%20Tree%20Logo.png" alt="ClayPull Logo" width="420" style="border-radius: 12px; margin-bottom: 16px;" />
+<br/>
+
 ![ClayPull Banner](https://img.shields.io/badge/ClayPull-Open--Source%20Contribution%20Coach-ff4d8d?style=for-the-badge&logo=github)
 <br/>
 

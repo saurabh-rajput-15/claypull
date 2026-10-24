@@ -64,7 +64,7 @@ function checkEnvironmentFile() {
     }
   } else {
     // Generate minimal .env
-    const fallbackEnv = `# ClayPull Environment Configuration\nVITE_OLLAMA_ENDPOINT=http://localhost:11434\nVITE_DEFAULT_MODEL=qwen2.5-coder:7b\nVITE_GITHUB_TOKEN=\n`;
+    const fallbackEnv = `# ClayPull Environment Configuration\nVITE_OLLAMA_ENDPOINT=http://localhost:11434\nVITE_DEFAULT_MODEL=gemma4:e4b\nVITE_GITHUB_TOKEN=\n`;
     fs.writeFileSync(envPath, fallbackEnv, 'utf8');
     console.log(`${colors.yellow}INITIALIZED (defaults generated)${colors.reset}`);
   }
@@ -95,7 +95,7 @@ function checkOllama(callback) {
         if (models.length > 0) {
           console.log(`        ${colors.dim}Available models: ${models.slice(0, 4).join(', ')}${models.length > 4 ? ` (+${models.length - 4} more)` : ''}${colors.reset}`);
         } else {
-          console.log(`        ${colors.yellow}No models found yet. Recommended: 'ollama run qwen2.5-coder:7b'${colors.reset}`);
+          console.log(`        ${colors.yellow}No models found yet. Recommended: 'ollama run gemma4:e4b'${colors.reset}`);
         }
       } catch {
         console.log(`${colors.green}ONLINE (HTTP 200)${colors.reset}`);
@@ -122,7 +122,7 @@ function printOllamaTip() {
   console.log(`        ${colors.dim}Tip: Local Ollama is optional. You can use:${colors.reset}`);
   console.log(`        ${colors.dim}  • Zero-setup Offline Demo Mode (instant results)${colors.reset}`);
   console.log(`        ${colors.dim}  • Cloud models (Groq, OpenRouter, OpenAI, DeepSeek)${colors.reset}`);
-  console.log(`        ${colors.dim}  • Start Ollama locally: 'ollama serve' & 'ollama run qwen2.5-coder:7b'${colors.reset}`);
+  console.log(`        ${colors.dim}  • Start Ollama locally: 'ollama serve' & 'ollama run gemma4:e4b'${colors.reset}`);
 }
 
 function checkMcpAndCli() {
