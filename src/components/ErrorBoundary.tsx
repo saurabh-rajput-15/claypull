@@ -41,7 +41,8 @@ export class ErrorBoundary extends Component<Props, State> {
           <div
             style={{
               maxWidth: 500,
-              background: 'var(--color-surface-card, #f5f0e0)',
+              background: 'var(--color-surface-card, #ffffff)',
+              border: '1px solid var(--color-hairline, #eadbc8)',
               borderRadius: 16,
               padding: 32,
               textAlign: 'center',

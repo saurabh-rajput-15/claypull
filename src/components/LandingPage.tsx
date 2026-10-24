@@ -92,7 +92,7 @@ const STAGES: { key: PipelineStage; label: string }[] = [
 ];
 
 const STAGE_ORDER: PipelineStage[] = ['fetching', 'summarizing', 'ranking', 'planning', 'done'];
-const CARD_COLORS = ['pink', 'teal', 'lavender', 'peach', 'ochre'] as const;
+const CARD_COLORS = ['emerald', 'teal', 'amber', 'coral', 'indigo'] as const;
 
 export const LandingPage: React.FC<LandingPageProps> = ({
   repoUrl,
@@ -933,8 +933,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 <div className="comparison-stat-tile">
                   <span className="title">Model Identifier</span>
                   <div className="values">
-                    <span style={{ color: 'var(--color-brand-pink)' }}>{comparisonResult.modelA.config.model}</span>
-                    <span style={{ color: 'var(--color-brand-teal)' }}>{comparisonResult.modelB.config.model}</span>
+                    <span style={{ color: '#4f46e5', fontWeight: 600 }}>{comparisonResult.modelA.config.model}</span>
+                    <span style={{ color: '#0d9488', fontWeight: 600 }}>{comparisonResult.modelB.config.model}</span>
                   </div>
                 </div>
 

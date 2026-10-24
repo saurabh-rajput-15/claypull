@@ -79,7 +79,7 @@ interface DashboardProps {
 
 type DashboardTab = 'overview' | 'issues' | 'prompts' | 'mcp' | 'compare' | 'settings';
 
-const CARD_COLORS = ['pink', 'teal', 'lavender', 'peach', 'ochre'] as const;
+const CARD_COLORS = ['emerald', 'teal', 'amber', 'coral', 'indigo'] as const;
 
 export const Dashboard: React.FC<DashboardProps> = ({
   repoUrl,
@@ -623,7 +623,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
                 <div className="studio-intro-card">
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                    <Sparkles size={18} color="var(--color-brand-pink)" />
+                    <Sparkles size={18} color="#4f46e5" />
                     <h3 style={{ fontSize: 18, fontWeight: 600 }}>Master Prompts for #{currentIssue.number}</h3>
                   </div>
                   <p style={{ fontSize: 14, color: 'var(--color-muted)' }}>
@@ -822,9 +822,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
                       <span>{(comparisonResult.modelA.latencyMs / 1000).toFixed(2)}s</span>
                     </div>
                     {comparisonResult.modelA.result.issues.map((i) => (
-                      <div key={i.number} className="issue-card issue-card-pink" style={{ marginBottom: 12 }}>
+                      <div key={i.number} className="issue-card issue-card-indigo" style={{ marginBottom: 12 }}>
                         <h4>#{i.number} - {i.title}</h4>
-                        <p style={{ fontSize: 13, marginTop: 4 }}>{i.plainExplanation}</p>
+                        <p style={{ fontSize: 13, marginTop: 4, color: 'var(--color-muted)' }}>{i.plainExplanation}</p>
                       </div>
                     ))}
                   </div>
@@ -835,9 +835,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
                       <span>{(comparisonResult.modelB.latencyMs / 1000).toFixed(2)}s</span>
                     </div>
                     {comparisonResult.modelB.result.issues.map((i) => (
-                      <div key={i.number} className="issue-card issue-card-teal" style={{ marginBottom: 12 }}>
+                      <div key={i.number} className="issue-card issue-card-emerald" style={{ marginBottom: 12 }}>
                         <h4>#{i.number} - {i.title}</h4>
-                        <p style={{ fontSize: 13, marginTop: 4 }}>{i.plainExplanation}</p>
+                        <p style={{ fontSize: 13, marginTop: 4, color: 'var(--color-muted)' }}>{i.plainExplanation}</p>
                       </div>
                     ))}
                   </div>
