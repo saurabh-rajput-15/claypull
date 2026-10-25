@@ -227,10 +227,15 @@ export default function App() {
 
   useEffect(() => {
     if (provider === 'ollama-local') {
-      const timer = setTimeout(() => {
-        void refreshModels();
-      }, 0);
-      return () => clearTimeout(timer);
+      let cancelled = false;
+      queueMicrotask(() => {
+        if (!cancelled) {
+          void refreshModels();
+        }
+      });
+      return () => {
+        cancelled = true;
+      };
     }
   }, [provider, refreshModels]);
 
